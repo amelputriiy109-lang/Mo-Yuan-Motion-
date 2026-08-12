@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
@@ -19,17 +17,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check repository
-        run: |
-          echo "Repository berhasil dijalankan."
-          echo "Branch: ${{ github.ref_name }}"
-          echo "Commit: ${{ github.sha }}"
-
       - name: Test OpenRouter
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: |
-          curl -s https://openrouter.ai/api/v1/chat/completions \
+          curl https://openrouter.ai/api/v1/chat/completions \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
             -d '{
@@ -37,7 +29,7 @@ jobs:
               "messages": [
                 {
                   "role": "user",
-                  "content": "Halo, ini tes Mo Yuan Motion. Balas singkat."
+                  "content": "Halo, ini tes dari Mo Yuan Motion."
                 }
               ]
             }'
