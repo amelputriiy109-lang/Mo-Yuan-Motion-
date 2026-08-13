@@ -1,13 +1,16 @@
-name: Mo Yuan Motion
+name: OpenRouter AI
 
 on:
+  workflow_dispatch:
+    inputs:
+      prompt:
+        description: "Tulis pertanyaan untuk AI"
+        required: true
+        default: "Halo, perkenalkan dirimu"
+
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
 
 jobs:
   build:
@@ -20,16 +23,28 @@ jobs:
       - name: Test OpenRouter
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PROMPT: ${{ github.event.inputs.prompt || 'Halo, perkenalkan dirimu' }}
         run: |
-          curl -s https://openrouter.ai/api/v1/chat/completions \
+          set -e
+
+          RESPONSE=$(curl -sS \
+            -X POST "https://openrouter.ai/api/v1/chat/completions" \
             -H "Authorization: Bearer $OPENROUTER_API_KEY" \
             -H "Content-Type: application/json" \
-            -d '{
-              "model": "openai/gpt-4o-mini",
-              "messages": [
-                {
-                  "role": "user",
-                  "content": "Say hello"
-                }
-              ]
-            }'
+            -d "$(jq -n \
+              --arg prompt "$PROMPT" \
+              '{
+                model: "openai/gpt-4o-mini",
+                messages: [
+                  {
+                    role: "user",
+                    content: $prompt
+                  }
+                ]
+              }'
+            )")
+
+          echo "=== HASIL AI ==="
+          echo "$RESPONSE" | jq -r '.choices[0].message.content'
+
+          echo "=== SELESAI ==="
